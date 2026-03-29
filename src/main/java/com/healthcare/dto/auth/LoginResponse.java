@@ -4,19 +4,27 @@ import com.healthcare.enums.Role;
 
 public class LoginResponse {
 
-    private final String message;
+    private final Long id;
+    private final String email;
     private final Role role;
     private final String token;
+    private final String message;
 
-    public LoginResponse(String message, Role role, String token) {
-        this.message = message;
+    public LoginResponse(Long id, String email, Role role, String token, String message) {
+        this.id = id;
+        this.email = email;
         this.role = role;
         this.token = token;
+        this.message = message;
     }
 
     // Getters
-    public String getMessage() {
-        return message;
+    public Long getId() {
+        return id;
+    }
+
+    public String getEmail() {
+        return email;
     }
 
     public Role getRole() {
@@ -25,5 +33,9 @@ public class LoginResponse {
 
     public String getToken() {
         return token;
+    }
+
+    public String getMessage() {
+        return message;
     }
 }

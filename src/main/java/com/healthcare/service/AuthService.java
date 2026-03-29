@@ -115,9 +115,13 @@ public class AuthService {
             throw new InvalidCredentialsException(ErrorMessage.INVALID_CREDENTIALS.getMessage());
         }
 
+        // Find PatientId By using UserId
+        Long patientID = patientRepository.findPatientIdByUserId(user.getId())
+                .orElseThrow(() -> new InvalidCredentialsException(ErrorMessage.PATIENT_NOT_FOUND.getMessage()));
+
         // Generate JWT
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
 
-        return new LoginResponse(SuccessMessage.LOGIN_SUCCESS.getMessage(), user.getRole(), token);
+        return new LoginResponse(patientID, user.getEmail(), user.getRole(), token, SuccessMessage.LOGIN_SUCCESS.getMessage());
     }
 }
