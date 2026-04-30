@@ -6,6 +6,7 @@ import com.healthcare.dto.auth.RegisterRequest;
 import com.healthcare.dto.common.ApiResponse;
 import com.healthcare.enums.SuccessMessage;
 import com.healthcare.service.AuthService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "http://localhost:5173")
 public class AuthController {
 
     private final AuthService authService;
@@ -37,7 +37,18 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        return ResponseEntity.ok(authService.login(request));
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
+        return ResponseEntity.ok(authService.login(request, response));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse> logout(HttpServletResponse response) {
+        authService.logout(response);
+        return ResponseEntity.ok(new ApiResponse(SuccessMessage.LOGOUT_SUCCESS.getMessage()));
+    }
+
+    @GetMapping("/check")
+    public ResponseEntity<String> checkLogout() {
+        return ResponseEntity.ok("valid");
     }
 }

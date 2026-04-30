@@ -14,6 +14,8 @@ import com.healthcare.repository.DoctorRepository;
 import com.healthcare.repository.PatientRepository;
 import com.healthcare.repository.UserRepository;
 import com.healthcare.security.JwtUtil;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -104,7 +106,7 @@ public class AuthService {
         request.setEmail(email);
     }
 
-    public LoginResponse login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request, HttpServletResponse response) {
         String email = request.getEmail().toLowerCase().trim();
 
         User user = userRepository.findByEmail(email)
@@ -129,6 +131,28 @@ public class AuthService {
         // Generate JWT
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
 
-        return new LoginResponse(id, user.getEmail(), user.getRole(), token, SuccessMessage.LOGIN_SUCCESS.getMessage());
+        // Create HttpOnly Cookie
+        Cookie cookie = new Cookie("jwt", token);
+
+        cookie.setHttpOnly(true);   // JS cannot access this
+        cookie.setSecure(false);    // set true in production (requires HTTPS)
+        cookie.setPath("/");        // cookie sent on all routes
+        // cookie.setMaxAge(24 * 60 * 60); // 1 day in seconds
+        // cookie.setMaxAge(120);   // 2 minute
+        cookie.setMaxAge(15); // auto logout after 15 seconds
+
+        response.addCookie(cookie); // attach to response
+
+        return new LoginResponse(id, user.getEmail(), user.getRole(), SuccessMessage.LOGIN_SUCCESS.getMessage());
+    }
+
+    public void logout(HttpServletResponse response) {
+        Cookie cookie = new Cookie("jwt", null);
+
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0); // maxAge 0 = delete the cookie
+
+        response.addCookie(cookie);
     }
 }
