@@ -33,6 +33,9 @@ public class AuthService {
     @Value("${cloudinary.default-doctor-image}")
     private String defaultDoctorImage;
 
+    @Value("${cloudinary.default-patient-image}")
+    private String defaultPatientImage;
+
     public AuthService(
             UserRepository userRepository,
             PatientRepository patientRepository,
@@ -63,6 +66,7 @@ public class AuthService {
         patient.setPhone("0000000000");
         patient.setAddress("Not set");
         patient.setBloodGroup(BloodGroup.UNKNOWN.getValue());
+        patient.setImageUrl(defaultPatientImage);
 
         patient.setUser(user);
         patientRepository.save(patient);
@@ -138,8 +142,8 @@ public class AuthService {
         cookie.setSecure(false);    // set true in production (requires HTTPS)
         cookie.setPath("/");        // cookie sent on all routes
         // cookie.setMaxAge(24 * 60 * 60); // 1 day in seconds
-        // cookie.setMaxAge(120);   // 2 minute
-        cookie.setMaxAge(15); // auto logout after 15 seconds
+        cookie.setMaxAge(15 * 60); // 15 minutes
+        // cookie.setMaxAge(15); // auto logout after 15 seconds
 
         response.addCookie(cookie); // attach to response
 

@@ -12,7 +12,7 @@ import com.healthcare.model.DoctorAvailability;
 import com.healthcare.repository.AppointmentRepository;
 import com.healthcare.repository.DoctorAvailabilityRepository;
 import com.healthcare.repository.DoctorRepository;
-import com.healthcare.util.TimeSlotUtil;
+import com.healthcare.util.CommonUtil;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
@@ -92,7 +92,7 @@ public class DoctorService {
                     DoctorAvailability doctorAvailability = optionalDoctorAvailability.get();
 
                     // Generate all slots
-                    List<LocalTime> slots = TimeSlotUtil.generateTimeSlots(
+                    List<LocalTime> slots = CommonUtil.generateTimeSlots(
                             doctorAvailability.getStartTime(),
                             doctorAvailability.getEndTime(),
                             doctorAvailability.getSlotDuration(),

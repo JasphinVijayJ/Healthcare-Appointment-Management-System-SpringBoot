@@ -39,6 +39,9 @@ public class Patient {
     @Column(nullable = false)
     private String bloodGroup;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -113,6 +116,14 @@ public class Patient {
 
     public void setBloodGroup(String bloodGroup) {
         this.bloodGroup = bloodGroup;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public LocalDateTime getCreatedAt() {

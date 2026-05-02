@@ -39,14 +39,18 @@ public class SecurityConfig {
                                 "/auth/register",
                                 "/auth/login",
                                 "/auth/logout",
-                                "/contact-form",
+                                "/utility/contact-form",
                                 "/doctors/**"
                         ).permitAll()
 
                         // Role protected routes
                         .requestMatchers(
-                                "/appointments/**"
+                                "/appointments/**",
+                                "/patients/**"
                         ).hasRole("PATIENT")
+
+                        .requestMatchers("/utility/upload-profile-image")
+                        .hasAnyRole("PATIENT", "DOCTOR")
 
                         // Everything else needs any valid token
                         .anyRequest().authenticated()

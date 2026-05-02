@@ -21,7 +21,12 @@ public enum ErrorMessage {
     UNAUTHORIZED_APPOINTMENT_CANCEL("You are not authorized to cancel this appointment."),
     CANNOT_CANCEL_COMPLETED("Cannot cancel a completed appointment."),
     CANNOT_CANCEL_PAST("Cannot cancel appointments scheduled before today."),
-    CANNOT_CANCEL_PAST_TODAY("Cannot cancel appointments with a past time today.");
+    CANNOT_CANCEL_PAST_TODAY("Cannot cancel appointments with a past time today."),
+
+    IMAGE_REQUIRED("Image file is required and cannot be empty"),
+    INVALID_IMAGE("Only image files are allowed (jpg, png, webp, etc.)"),
+    INVALID_ROLE("Invalid role provided"),
+    IMAGE_UPLOAD_FAILED("Failed to upload profile image to Cloudinary");
 
     private final String message;
 

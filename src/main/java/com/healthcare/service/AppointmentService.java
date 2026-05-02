@@ -15,7 +15,7 @@ import com.healthcare.repository.AppointmentRepository;
 import com.healthcare.repository.DoctorAvailabilityRepository;
 import com.healthcare.repository.DoctorRepository;
 import com.healthcare.repository.PatientRepository;
-import com.healthcare.util.TimeSlotUtil;
+import com.healthcare.util.CommonUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,14 +34,14 @@ public class AppointmentService {
     private final DoctorRepository doctorRepository;
     private final PatientRepository patientRepository;
     private final DoctorAvailabilityRepository doctorAvailabilityRepository;
-    private final EmailNotificationService emailNotificationService;
+    private final UtilityService utilityService;
 
-    public AppointmentService(AppointmentRepository appointmentRepository, DoctorRepository doctorRepository, PatientRepository patientRepository, DoctorAvailabilityRepository doctorAvailabilityRepository, EmailNotificationService emailNotificationService) {
+    public AppointmentService(AppointmentRepository appointmentRepository, DoctorRepository doctorRepository, PatientRepository patientRepository, DoctorAvailabilityRepository doctorAvailabilityRepository, UtilityService utilityService) {
         this.appointmentRepository = appointmentRepository;
         this.doctorRepository = doctorRepository;
         this.patientRepository = patientRepository;
         this.doctorAvailabilityRepository = doctorAvailabilityRepository;
-        this.emailNotificationService = emailNotificationService;
+        this.utilityService = utilityService;
     }
 
     @Transactional
@@ -69,7 +69,7 @@ public class AppointmentService {
                 .orElseThrow(() -> new AppointmentValidationException(ErrorMessage.DOCTOR_NOT_AVAILABLE.getMessage() + dayOfWeek));
 
         // Generate valid slots for the day
-        List<LocalTime> validSlots = TimeSlotUtil.generateTimeSlots(
+        List<LocalTime> validSlots = CommonUtil.generateTimeSlots(
                 doctorAvailability.getStartTime(),
                 doctorAvailability.getEndTime(),
                 doctorAvailability.getSlotDuration(),
@@ -110,7 +110,7 @@ public class AppointmentService {
 
         appointmentRepository.save(appointment);
 
-        emailNotificationService.sendAppointmentConfirmation(appointment);
+        utilityService.sendAppointmentConfirmation(appointment);
     }
 
     public List<PatientAppointmentResponse> getAppointmentsForPatient(Long patientId) {
@@ -148,6 +148,6 @@ public class AppointmentService {
         appointment.setStatus(AppointmentStatus.CANCELLED);
         appointmentRepository.save(appointment);
 
-        emailNotificationService.sendAppointmentCancellation(appointment);
+        utilityService.sendAppointmentCancellation(appointment);
     }
 }

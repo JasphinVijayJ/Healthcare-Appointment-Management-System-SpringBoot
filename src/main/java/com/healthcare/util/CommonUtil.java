@@ -1,12 +1,16 @@
 package com.healthcare.util;
 
+import com.healthcare.enums.BloodGroup;
+import com.healthcare.enums.Gender;
+
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-public final class TimeSlotUtil {
+public final class CommonUtil {
 
-    private TimeSlotUtil() {
+    private CommonUtil() {
         throw new UnsupportedOperationException("Object creation not allowed for utility class");
     }
 
@@ -29,5 +33,17 @@ public final class TimeSlotUtil {
             current = current.plusMinutes(durationMinutes);
         }
         return slots;
+    }
+
+    public static List<String> getAllBloodGroups() {
+        return Arrays.stream(BloodGroup.values())
+                .map(BloodGroup::getValue)
+                .toList();
+    }
+
+    public static List<String> getAllGenders() {
+        return Arrays.stream(Gender.values())
+                .map(Enum::name)
+                .toList();
     }
 }
