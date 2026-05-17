@@ -11,9 +11,6 @@ public class AppointmentRequest {
     @NotNull(message = "Doctor ID is required")
     private Long doctorId;
 
-    @NotNull(message = "Patient ID is required")
-    private Long patientId;
-
     @NotNull(message = "Appointment date is required")
     @FutureOrPresent(message = "Appointment date must be today or in the future")
     private LocalDate appointmentDate;
@@ -28,14 +25,6 @@ public class AppointmentRequest {
 
     public void setDoctorId(Long doctorId) {
         this.doctorId = doctorId;
-    }
-
-    public Long getPatientId() {
-        return patientId;
-    }
-
-    public void setPatientId(Long patientId) {
-        this.patientId = patientId;
     }
 
     public LocalDate getAppointmentDate() {

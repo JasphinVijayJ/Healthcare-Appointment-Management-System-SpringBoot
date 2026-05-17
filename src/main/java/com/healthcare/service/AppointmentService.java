@@ -2,8 +2,10 @@ package com.healthcare.service;
 
 import com.healthcare.dto.appointment.AppointmentRequest;
 import com.healthcare.dto.appointment.PatientAppointmentResponse;
+import com.healthcare.dto.common.ApiResponse;
 import com.healthcare.enums.AppointmentStatus;
 import com.healthcare.enums.ErrorMessage;
+import com.healthcare.enums.SuccessMessage;
 import com.healthcare.exception.AppointmentValidationException;
 import com.healthcare.exception.ResourceNotFoundException;
 import com.healthcare.exception.SlotAlreadyBookedException;
@@ -21,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -45,14 +48,14 @@ public class AppointmentService {
     }
 
     @Transactional
-    public void bookAppointment(AppointmentRequest request) {
+    public void bookAppointment(Long loggedInUserId, AppointmentRequest request) {
         // Fetch doctor
         Doctor doctor = doctorRepository.findById(request.getDoctorId())
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.DOCTOR_NOT_FOUND.getMessage() + request.getDoctorId()));
 
         // Fetch patient
-        Patient patient = patientRepository.findById(request.getPatientId())
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.PATIENT_NOT_FOUND.getMessage() + request.getPatientId()));
+        Patient patient = patientRepository.findById(loggedInUserId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.PATIENT_NOT_FOUND.getMessage() + loggedInUserId));
 
         LocalDate appointmentDate = request.getAppointmentDate();
         LocalTime appointmentTime = request.getAppointmentTime();
@@ -97,7 +100,7 @@ public class AppointmentService {
         }
 
         // Check daily limit for patient appointments
-        int dailyCount = appointmentRepository.countByPatientAndAppointmentDateAndStatus(patient, appointmentDate, AppointmentStatus.BOOKED);
+        int dailyCount = appointmentRepository.countByPatientAndAppointmentDateAndStatusIn(patient, appointmentDate, blockedStatuses);
         if (dailyCount >= MAX_DAILY_PATIENT_APPOINTMENTS)
             throw new AppointmentValidationException(ErrorMessage.DAILY_APPOINTMENT_LIMIT.getMessage());
 
@@ -107,6 +110,7 @@ public class AppointmentService {
         appointment.setAppointmentDate(appointmentDate);
         appointment.setAppointmentTime(appointmentTime);
         appointment.setStatus(AppointmentStatus.BOOKED);
+        appointment.setDoctorFee(doctor.getConsultationFee());
 
         appointmentRepository.save(appointment);
 
@@ -114,6 +118,7 @@ public class AppointmentService {
     }
 
     public List<PatientAppointmentResponse> getAppointmentsForPatient(Long patientId) {
+
         if (!patientRepository.existsById(patientId))
             throw new ResourceNotFoundException(ErrorMessage.PATIENT_NOT_FOUND.getMessage() + patientId);
 
@@ -121,20 +126,17 @@ public class AppointmentService {
     }
 
     @Transactional
-    public void cancelAppointment(Long appointmentId, Long patientId) {
+    public void cancelAppointment(Long appointmentId, Long loggedInUserId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.APPOINTMENT_NOT_FOUND.getMessage() + appointmentId));
 
         // Validate appointment belongs to requesting patient
-        if (!appointment.getPatient().getId().equals(patientId))
+        if (!appointment.getPatient().getId().equals(loggedInUserId))
             throw new AppointmentValidationException(ErrorMessage.UNAUTHORIZED_APPOINTMENT_CANCEL.getMessage());
 
-        // Already cancelled → nothing to do
-        if (appointment.getStatus() == AppointmentStatus.CANCELLED) return;
-
-        // Prevent cancelling completed appointments
-        if (appointment.getStatus() == AppointmentStatus.COMPLETED)
-            throw new AppointmentValidationException(ErrorMessage.CANNOT_CANCEL_COMPLETED.getMessage());
+        // Only BOOKED appointments can be cancelled
+        if (appointment.getStatus() != AppointmentStatus.BOOKED)
+            throw new AppointmentValidationException(ErrorMessage.INVALID_APPOINTMENT_CANCELLATION.getMessage());
 
         // Prevent cancelling past appointments (date before today)
         if (appointment.getAppointmentDate().isBefore(LocalDate.now()))
@@ -145,9 +147,62 @@ public class AppointmentService {
                 appointment.getAppointmentTime().isBefore(LocalTime.now()))
             throw new AppointmentValidationException(ErrorMessage.CANNOT_CANCEL_PAST_TODAY.getMessage());
 
+
         appointment.setStatus(AppointmentStatus.CANCELLED);
+
         appointmentRepository.save(appointment);
 
         utilityService.sendAppointmentCancellation(appointment);
     }
+
+    @Transactional
+    public ApiResponse updateAppointmentStatus(Long appointmentId, String req_Status) {
+
+        AppointmentStatus status;
+
+        try {
+            status = AppointmentStatus.valueOf(req_Status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new AppointmentValidationException(ErrorMessage.UNSUPPORTED_APPOINTMENT_STATUS.getMessage());
+        }
+
+        // Allow only COMPLETED or REJECTED from frontend
+        if (status != AppointmentStatus.COMPLETED && status != AppointmentStatus.REJECTED)
+            throw new AppointmentValidationException(ErrorMessage.INVALID_APPOINTMENT_STATUS_CHANGE.getMessage());
+
+
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.APPOINTMENT_NOT_FOUND.getMessage() + appointmentId));
+
+
+        // Only BOOKED appointments can be updated
+        if (appointment.getStatus() != AppointmentStatus.BOOKED)
+            throw new AppointmentValidationException(ErrorMessage.INVALID_APPOINTMENT_UPDATE.getMessage());
+
+
+        LocalDateTime appointmentDateTime = LocalDateTime.of(
+                appointment.getAppointmentDate(), appointment.getAppointmentTime());
+
+        LocalDateTime now = LocalDateTime.now();
+
+        // Prevent early completion
+        if (status == AppointmentStatus.COMPLETED && now.isBefore(appointmentDateTime)) {
+            throw new AppointmentValidationException(ErrorMessage.EARLY_COMPLETION_NOT_ALLOWED.getMessage());
+        }
+
+
+        appointment.setStatus(status);
+
+        appointmentRepository.save(appointment);
+
+
+        if (AppointmentStatus.COMPLETED.equals(status)) {
+            utilityService.sendAppointmentCompleted(appointment);
+        } else {
+            utilityService.sendAppointmentRejected(appointment);
+        }
+
+        return new ApiResponse(appointment.getStatus().name(), SuccessMessage.APPOINTMENT_STATUS_UPDATED_SUCCESS.getMessage());
+    }
+
 }

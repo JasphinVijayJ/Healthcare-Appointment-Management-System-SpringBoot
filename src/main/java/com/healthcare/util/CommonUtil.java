@@ -3,7 +3,9 @@ package com.healthcare.util;
 import com.healthcare.enums.BloodGroup;
 import com.healthcare.enums.Gender;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -46,4 +48,14 @@ public final class CommonUtil {
                 .map(Enum::name)
                 .toList();
     }
+
+    public static int calculateAge(LocalDate dateOfBirth) {
+
+        if (dateOfBirth == null) {
+            return 0;
+        }
+
+        return Period.between(dateOfBirth, LocalDate.now()).getYears();
+    }
+
 }

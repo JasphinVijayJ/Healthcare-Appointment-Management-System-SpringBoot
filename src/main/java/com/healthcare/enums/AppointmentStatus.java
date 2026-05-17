@@ -1,5 +1,5 @@
 package com.healthcare.enums;
 
 public enum AppointmentStatus {
-    BOOKED, CANCELLED, COMPLETED
+    BOOKED, CANCELLED, COMPLETED, REJECTED
 }

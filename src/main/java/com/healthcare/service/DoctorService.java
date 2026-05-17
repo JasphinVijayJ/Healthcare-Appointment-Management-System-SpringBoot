@@ -1,6 +1,8 @@
 package com.healthcare.service;
 
+import com.healthcare.dto.appointment.LatestAppointmentResponse;
 import com.healthcare.dto.doctor.AvailableDayResponse;
+import com.healthcare.dto.doctor.DoctorDashboardResponse;
 import com.healthcare.dto.doctor.DoctorListResponse;
 import com.healthcare.dto.doctor.DoctorProfileResponse;
 import com.healthcare.enums.AppointmentStatus;
@@ -9,6 +11,7 @@ import com.healthcare.exception.ResourceNotFoundException;
 import com.healthcare.model.Appointment;
 import com.healthcare.model.Doctor;
 import com.healthcare.model.DoctorAvailability;
+import com.healthcare.model.Patient;
 import com.healthcare.repository.AppointmentRepository;
 import com.healthcare.repository.DoctorAvailabilityRepository;
 import com.healthcare.repository.DoctorRepository;
@@ -131,5 +134,40 @@ public class DoctorService {
             maxDaysChecked++;
         }
         return response;
+    }
+
+    public DoctorDashboardResponse getDoctorDashboard(Long id) {
+
+        Doctor doctor = doctorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.DOCTOR_NOT_FOUND.getMessage() + id));
+
+        List<Appointment> appointments = appointmentRepository.findTop6RecentAppointmentsForDoctorDashboard(id);
+
+        List<LatestAppointmentResponse> response = new ArrayList<>();
+
+        for (Appointment appointment : appointments)
+        {
+            Patient patient = appointment.getPatient();
+
+            response.add(
+                    new LatestAppointmentResponse(
+                            appointment.getId(),
+                            patient.getName(),
+                            CommonUtil.calculateAge(patient.getDob()),
+                            appointment.getAppointmentDate(),
+                            appointment.getAppointmentTime(),
+                            appointment.getStatus()
+                    )
+            );
+        }
+
+
+        return new DoctorDashboardResponse(
+                doctor.getName(),
+                appointmentRepository.getTotalEarningsByDoctor(id),
+                appointmentRepository.countByDoctor_Id(id),
+                appointmentRepository.countDistinctPatientsByDoctor(id),
+                response
+        );
     }
 }

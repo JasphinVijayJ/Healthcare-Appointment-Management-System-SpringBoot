@@ -76,82 +76,77 @@ public class UtilityService {
                 subject,
                 request.getMessage().trim()
         );
+
         sendEmail(adminEmail, subject, body);
     }
 
     public void sendAppointmentConfirmation(Appointment appointment) {
-        String subject = "Appointment Confirmation";
-
-        String body = """
-                Dear %s,
-                
-                Your appointment has been successfully booked.
-                
-                Appointment Details
-                ---------------------------
-                Doctor      : %s
-                Specialty  : %s
-                Date         : %s
-                Time         : %s
-                Consultation Fee : ₹%.2f
-                Status      : %s
-                
-                Please arrive 10 minutes early and carry any previous medical reports.
-                
-                Thank you for choosing our healthcare service.
-                Wishing you good health!
-                
-                Regards,
-                Healthcare Support Team
-                """.formatted(
-                appointment.getPatient().getName(),
-                appointment.getDoctor().getName(),
-                appointment.getDoctor().getSpecialty(),
-                appointment.getAppointmentDate(),
-                appointment.getAppointmentTime(),
-                appointment.getDoctor().getConsultationFee(),
-                appointment.getStatus()
-        );
-        sendEmail(
-                appointment.getPatient().getUser().getEmail(),
-                subject,
-                body
+        sendAppointmentEmail(
+                appointment,
+                "Appointment Confirmation",
+                "Your appointment has been successfully booked.",
+                "Please arrive 10 minutes early and carry any previous medical reports.\n\nThank you for choosing our healthcare service.\nWishing you good health \uD83D\uDC96"
         );
     }
 
     public void sendAppointmentCancellation(Appointment appointment) {
-        String subject = "Appointment Cancelled";
+        sendAppointmentEmail(
+                appointment,
+                "Appointment Cancelled",
+                "Your appointment has been cancelled as requested.",
+                "If you wish to book another appointment, please visit our platform. For any assistance, feel free to contact our support team.\n\nThank you for choosing our healthcare service.\nWishing you good health \uD83D\uDC96"
+        );
+    }
 
+    public void sendAppointmentCompleted(Appointment appointment) {
+        sendAppointmentEmail(
+                appointment,
+                "Appointment Completed",
+                "Your appointment has been marked as completed successfully.",
+                "Thank you for visiting our healthcare service.\nWe wish you good health and a speedy recovery \uD83D\uDC96"
+        );
+    }
+
+    public void sendAppointmentRejected(Appointment appointment) {
+        sendAppointmentEmail(
+                appointment,
+                "Appointment Rejected",
+                "We regret to inform you that your appointment has been rejected.",
+                "Please try booking another appointment or contact our support team for assistance."
+        );
+    }
+
+    private void sendAppointmentEmail(Appointment appointment, String subject,
+                                      String introduction, String footer) {
         String body = """
                 Dear %s,
                 
-                Your appointment has been successfully cancelled.
+                %s
                 
                 Appointment Details
                 ---------------------------
-                Doctor      : %s
-                Specialty  : %s
-                Date         : %s
-                Time         : %s
-                Consultation Fee : ₹%.2f
-                Status      : %s
+                Doctor                     : %s
+                Specialty                 : %s
+                Date                        : %s
+                Time                        : %s
+                Consultation Fee     : ₹%.2f
+                Status                      : %s
                 
-                If you wish to book another appointment, please visit our platform.
-                For any assistance, feel free to contact our support team.
-                
-                Thank you for choosing our healthcare service.
-                Wishing you good health!
+                %s
                 
                 Regards,
                 Healthcare Support Team
+                Jasphin Vijay J
                 """.formatted(
                 appointment.getPatient().getName(),
+                introduction,
                 appointment.getDoctor().getName(),
                 appointment.getDoctor().getSpecialty(),
                 appointment.getAppointmentDate(),
                 appointment.getAppointmentTime(),
                 appointment.getDoctor().getConsultationFee(),
-                appointment.getStatus()
+                appointment.getStatus(),
+                footer
         );
 
         sendEmail(
@@ -163,7 +158,7 @@ public class UtilityService {
 
     /* ------------------------- Profile Image Upload Service ----------------------------- */
 
-    public ApiResponse uploadProfileImage(MultipartFile image, Long id, String role) {
+    public ApiResponse uploadProfileImage(MultipartFile image, Long loggedInUserId, String role) {
         // Validate file
         if (image == null || image.isEmpty()) {
             throw new BadRequestException(ErrorMessage.IMAGE_REQUIRED.getMessage());
@@ -181,12 +176,12 @@ public class UtilityService {
             Doctor doctor = null;
 
             if (role.equalsIgnoreCase("PATIENT")) {
-                patient = patientRepository.findById(id)
-                        .orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.PATIENT_NOT_FOUND.getMessage() + id));
+                patient = patientRepository.findById(loggedInUserId)
+                        .orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.PATIENT_NOT_FOUND.getMessage() + loggedInUserId));
             }
             else if (role.equalsIgnoreCase("DOCTOR")) {
-                doctor = doctorRepository.findById(id)
-                        .orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.DOCTOR_NOT_FOUND.getMessage() + id));
+                doctor = doctorRepository.findById(loggedInUserId)
+                        .orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.DOCTOR_NOT_FOUND.getMessage() + loggedInUserId));
             }
             else {
                 throw new BadRequestException(ErrorMessage.INVALID_ROLE.getMessage());
@@ -196,7 +191,7 @@ public class UtilityService {
             String folder = "HAMS/" + role;
 
             // Image File Name - FIXED PUBLIC ID (OVERWRITE STRATEGY)
-            String publicId = id.toString();
+            String publicId = loggedInUserId.toString();
 
             // Upload (overwrite existing image if exists)
             Map<?, ?> uploadResult = cloudinary.uploader().upload(

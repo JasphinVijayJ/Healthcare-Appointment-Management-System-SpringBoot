@@ -24,10 +24,11 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String generateToken(String email, String role) {
+    public String generateToken(Long id, String email, String role) {
 
         return Jwts.builder()
                 .setSubject(email)  // who the token belongs to
+                .claim("id", id)
                 .claim("role", role)
                 .setIssuedAt(new Date())    // token creation time
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
@@ -52,8 +53,10 @@ public class JwtUtil {
         }
     }
 
-    public String getEmailFromToken(String token) {
-        return getClaims(token).getSubject();
+    public Long getIdFromToken(String token) {
+        Object id = getClaims(token).get("id");
+
+        return ((Number) id).longValue();
     }
 
     public String getRoleFromToken(String token) {

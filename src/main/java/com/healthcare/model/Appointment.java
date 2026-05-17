@@ -28,7 +28,6 @@ public class Appointment {
     private Patient patient;
 
     @NotNull(message = "Appointment date is required")
-    @FutureOrPresent(message = "Appointment date must be today or in the future")
     @Column(name = "appointment_date", nullable = false)
     private LocalDate appointmentDate;
 
@@ -40,6 +39,9 @@ public class Appointment {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AppointmentStatus status;
+
+    @Column(name = "doctor_fee", nullable = false)
+    private double doctorFee;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -97,6 +99,14 @@ public class Appointment {
 
     public void setStatus(AppointmentStatus status) {
         this.status = status;
+    }
+
+    public double getDoctorFee() {
+        return doctorFee;
+    }
+
+    public void setDoctorFee(double doctorFee) {
+        this.doctorFee = doctorFee;
     }
 
     public LocalDateTime getCreatedAt() {

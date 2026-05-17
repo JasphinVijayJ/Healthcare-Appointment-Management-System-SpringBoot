@@ -18,9 +18,9 @@ public class PatientService {
         this.patientRepository = patientRepository;
     }
 
-    public PatientDetailsResponse getPatientById(Long id) {
-       Patient patient = patientRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.PATIENT_NOT_FOUND.getMessage() + id));
+    public PatientDetailsResponse getPatientProfile(Long loggedInUserId) {
+        Patient patient = patientRepository.findById(loggedInUserId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.PATIENT_NOT_FOUND.getMessage() + loggedInUserId));
 
         return new PatientDetailsResponse(
                 patient.getName(),
@@ -34,13 +34,13 @@ public class PatientService {
                 patient.getGender(),
                 CommonUtil.getAllGenders(),
                 patient.getImageUrl(),
-                SuccessMessage.PROFILE_UPDATED_SUCCESS.getMessage()
+                SuccessMessage.PROFILE_FETCHED_SUCCESS.getMessage()
         );
     }
 
-    public PatientDetailsResponse updatePatientProfile(Long id, Patient request) {
-        Patient patient = patientRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.PATIENT_NOT_FOUND.getMessage() + id));
+    public PatientDetailsResponse updatePatientProfile(Long loggedInUserId, Patient request) {
+        Patient patient = patientRepository.findById(loggedInUserId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.PATIENT_NOT_FOUND.getMessage() + loggedInUserId));
 
         patient.setName(request.getName());
         patient.setPhone(request.getPhone());

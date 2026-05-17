@@ -23,7 +23,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     List<Appointment> findByDoctor_IdAndAppointmentDateAndStatusIn(Long doctorId, LocalDate date, List<AppointmentStatus> status);
 
-    int countByPatientAndAppointmentDateAndStatus(Patient patient, LocalDate date, AppointmentStatus status);
+    int countByPatientAndAppointmentDateAndStatusIn(Patient patient, LocalDate date, List<AppointmentStatus> status);
 
     @Query("""
             SELECT new com.healthcare.dto.appointment.PatientAppointmentResponse(
@@ -44,4 +44,40 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             ORDER BY a.createdAt DESC
             """)
     List<PatientAppointmentResponse> findAppointmentsForPatient(@Param("patientId") Long patientId);
+
+
+    @Query("""
+            SELECT COALESCE(SUM(a.doctorFee), 0)
+            FROM Appointment a
+            WHERE a.doctor.id = :doctorId
+            AND a.status = 'COMPLETED'
+            """)
+    double getTotalEarningsByDoctor(@Param("doctorId") Long doctorId);
+
+
+    long countByDoctor_Id(Long doctorId);
+
+
+    @Query("""
+            SELECT COUNT(DISTINCT a.patient.id)
+            FROM Appointment a
+            WHERE a.doctor.id = :doctorId
+            """)
+    long countDistinctPatientsByDoctor(@Param("doctorId") Long doctorId);
+
+
+    @Query(value = """
+            SELECT *
+            FROM appointments a
+            WHERE a.doctor_id = :doctorId
+            ORDER BY
+            CASE
+                 WHEN a.status = 'BOOKED' THEN 0
+                 ELSE 1
+            END,
+            a.created_at DESC
+            LIMIT 6
+            """, nativeQuery = true)
+    List<Appointment> findTop6RecentAppointmentsForDoctorDashboard(@Param("doctorId") Long doctorId);
+
 }

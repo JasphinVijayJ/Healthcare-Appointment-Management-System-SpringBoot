@@ -40,12 +40,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         // Validate and set authentication
         if (token != null && jwtUtil.validateToken(token)) {
-            String email = jwtUtil.getEmailFromToken(token);
+            Long id = jwtUtil.getIdFromToken(token);
             String role = jwtUtil.getRoleFromToken(token);
 
             UsernamePasswordAuthenticationToken auth =
                     new UsernamePasswordAuthenticationToken(
-                            email,
+                            id,
                             null,
                             List.of(new SimpleGrantedAuthority("ROLE_" + role)) // e.g. ROLE_ADMIN
                     );

@@ -35,25 +35,40 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         // Public routes — no token needed
-                        .requestMatchers(
-                                "/auth/register",
-                                "/auth/login",
-                                "/auth/logout",
-                                "/utility/contact-form",
-                                "/doctors/**"
-                        ).permitAll()
+//                        .requestMatchers(
+//                                "/auth/register",
+//                                "/auth/login",
+//                                "/auth/logout",
+//                                "/utility/contact-form"
+//                        ).permitAll()
 
-                        // Role protected routes
-                        .requestMatchers(
-                                "/appointments/**",
-                                "/patients/**"
-                        ).hasRole("PATIENT")
+                        // Public doctor routes
+//                        .requestMatchers(
+//                                "/doctors/list",
+//                                "/doctors/{id}",
+//                                "/doctors/{doctorId}/availability"
+//                        ).permitAll()
 
-                        .requestMatchers("/utility/upload-profile-image")
-                        .hasAnyRole("PATIENT", "DOCTOR")
+
+                        // Protected patient routes
+//                        .requestMatchers(
+//                                "/appointments/**",
+//                                "/patients/**"
+//                        ).hasRole("PATIENT")
+
+                        // Protected doctor routes
+//                        .requestMatchers("/doctors/dashboard/{id}")
+//                        .hasRole("DOCTOR")
+
+
+//                        .requestMatchers("/utility/upload-profile-image")
+//                        .hasAnyRole("PATIENT", "DOCTOR")
 
                         // Everything else needs any valid token
-                        .anyRequest().authenticated()
+//                        .anyRequest().authenticated()
+
+                                // TEMPORARY → allow all APIs
+                                .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

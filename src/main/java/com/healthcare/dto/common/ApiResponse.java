@@ -3,15 +3,15 @@ package com.healthcare.dto.common;
 public class ApiResponse {
 
     private String message;
-    private String imageUrl;
+    private String data;
 
     public ApiResponse(String message) {
         this.message = message;
     }
 
-    public ApiResponse(String imageUrl, String message) {
+    public ApiResponse(String data, String message) {
         this.message = message;
-        this.imageUrl = imageUrl;
+        this.data = data;
     }
 
     // Getters and Setters
@@ -23,11 +23,11 @@ public class ApiResponse {
         this.message = message;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public String getData() {
+        return data;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setData(String data) {
+        this.data = data;
     }
 }

@@ -2,12 +2,12 @@ package com.healthcare.controller;
 
 import com.healthcare.dto.common.ApiResponse;
 import com.healthcare.dto.contact.ContactRequest;
-import com.healthcare.enums.Role;
 import com.healthcare.enums.SuccessMessage;
 import com.healthcare.service.UtilityService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,14 +23,18 @@ public class UtilityController {
 
     @PostMapping("/contact-form")
     public ResponseEntity<ApiResponse> sendMessage(@Valid @RequestBody ContactRequest request) {
+
         utilityService.sendContactEmail(request);
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponse(SuccessMessage.CONTACT_MESSAGE_SENT.getMessage()));
     }
 
     @PostMapping("/upload-profile-image")
-    public ResponseEntity<ApiResponse> uploadProfileImage(@RequestParam("image") MultipartFile image,
-                                                          @RequestParam("role") String role, @RequestParam("id") Long id) {
-        return ResponseEntity.ok(utilityService.uploadProfileImage(image, id, role));
+    public ResponseEntity<ApiResponse> uploadProfileImage(@AuthenticationPrincipal Long loggedInUserId,
+                                                          @RequestParam("image") MultipartFile image,
+                                                          @RequestParam("role") String role) {
+
+        return ResponseEntity.ok(utilityService.uploadProfileImage(image, loggedInUserId, role));
     }
 }

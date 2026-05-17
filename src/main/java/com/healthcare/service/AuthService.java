@@ -133,7 +133,7 @@ public class AuthService {
         }
 
         // Generate JWT
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+        String token = jwtUtil.generateToken(id, user.getEmail(), user.getRole().name());
 
         // Create HttpOnly Cookie
         Cookie cookie = new Cookie("jwt", token);
@@ -147,7 +147,7 @@ public class AuthService {
 
         response.addCookie(cookie); // attach to response
 
-        return new LoginResponse(id, user.getEmail(), user.getRole(), SuccessMessage.LOGIN_SUCCESS.getMessage());
+        return new LoginResponse(user.getEmail(), user.getRole(), SuccessMessage.LOGIN_SUCCESS.getMessage());
     }
 
     public void logout(HttpServletResponse response) {

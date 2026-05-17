@@ -4,6 +4,7 @@ import com.healthcare.dto.patient.PatientDetailsResponse;
 import com.healthcare.model.Patient;
 import com.healthcare.service.PatientService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,13 +17,15 @@ public class PatientController {
         this.patientService = patientService;
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<PatientDetailsResponse> getPatientById(@PathVariable Long id) {
-        return ResponseEntity.ok(patientService.getPatientById(id));
+    @GetMapping("/my-profile")
+    public ResponseEntity<PatientDetailsResponse> getPatientProfile(@AuthenticationPrincipal Long loggedInUserId) {
+
+        return ResponseEntity.ok(patientService.getPatientProfile(loggedInUserId));
     }
 
-    @PutMapping("/updateProfile/{id}")
-    public ResponseEntity<PatientDetailsResponse> updatePatientProfile(@PathVariable Long id, @RequestBody Patient request) {
-        return ResponseEntity.ok(patientService.updatePatientProfile(id, request));
+    @PutMapping("/update-profile")
+    public ResponseEntity<PatientDetailsResponse> updatePatientProfile(@AuthenticationPrincipal Long loggedInUserId, @RequestBody Patient request) {
+
+        return ResponseEntity.ok(patientService.updatePatientProfile(loggedInUserId, request));
     }
 }
