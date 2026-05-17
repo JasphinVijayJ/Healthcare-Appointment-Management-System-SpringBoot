@@ -1,6 +1,6 @@
 package com.healthcare.controller;
 
-import com.healthcare.dto.patient.PatientDetailsResponse;
+import com.healthcare.dto.patient.PatientMyProfileResponse;
 import com.healthcare.model.Patient;
 import com.healthcare.service.PatientService;
 import org.springframework.http.ResponseEntity;
@@ -18,13 +18,13 @@ public class PatientController {
     }
 
     @GetMapping("/my-profile")
-    public ResponseEntity<PatientDetailsResponse> getPatientProfile(@AuthenticationPrincipal Long loggedInUserId) {
+    public ResponseEntity<PatientMyProfileResponse> getPatientProfile(@AuthenticationPrincipal Long loggedInUserId) {
 
         return ResponseEntity.ok(patientService.getPatientProfile(loggedInUserId));
     }
 
     @PutMapping("/update-profile")
-    public ResponseEntity<PatientDetailsResponse> updatePatientProfile(@AuthenticationPrincipal Long loggedInUserId, @RequestBody Patient request) {
+    public ResponseEntity<PatientMyProfileResponse> updatePatientProfile(@AuthenticationPrincipal Long loggedInUserId, @RequestBody Patient request) {
 
         return ResponseEntity.ok(patientService.updatePatientProfile(loggedInUserId, request));
     }

@@ -1,6 +1,6 @@
 package com.healthcare.service;
 
-import com.healthcare.dto.patient.PatientDetailsResponse;
+import com.healthcare.dto.patient.PatientMyProfileResponse;
 import com.healthcare.enums.ErrorMessage;
 import com.healthcare.enums.SuccessMessage;
 import com.healthcare.exception.ResourceNotFoundException;
@@ -18,11 +18,11 @@ public class PatientService {
         this.patientRepository = patientRepository;
     }
 
-    public PatientDetailsResponse getPatientProfile(Long loggedInUserId) {
+    public PatientMyProfileResponse getPatientProfile(Long loggedInUserId) {
         Patient patient = patientRepository.findById(loggedInUserId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.PATIENT_NOT_FOUND.getMessage() + loggedInUserId));
 
-        return new PatientDetailsResponse(
+        return new PatientMyProfileResponse(
                 patient.getName(),
                 patient.getUser().getEmail(),
                 patient.getUser().getRole(),
@@ -38,7 +38,7 @@ public class PatientService {
         );
     }
 
-    public PatientDetailsResponse updatePatientProfile(Long loggedInUserId, Patient request) {
+    public PatientMyProfileResponse updatePatientProfile(Long loggedInUserId, Patient request) {
         Patient patient = patientRepository.findById(loggedInUserId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.PATIENT_NOT_FOUND.getMessage() + loggedInUserId));
 
@@ -51,7 +51,7 @@ public class PatientService {
 
         patientRepository.save(patient);
 
-        return new PatientDetailsResponse(
+        return new PatientMyProfileResponse(
                 patient.getName(),
                 patient.getUser().getEmail(),
                 patient.getUser().getRole(),

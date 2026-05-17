@@ -6,7 +6,7 @@ import com.healthcare.enums.Role;
 import java.time.LocalDate;
 import java.util.List;
 
-public class PatientDetailsResponse {
+public class PatientMyProfileResponse {
 
     private final String name;
     private final String email;
@@ -21,7 +21,7 @@ public class PatientDetailsResponse {
     private final String imageUrl;
     private final String message;
 
-    public PatientDetailsResponse(String name, String email, Role role, String phone, LocalDate dob, String address, String bloodGroup, List<String> allBloodGroup, Gender gender, List<String> allGender, String imageUrl, String message) {
+    public PatientMyProfileResponse(String name, String email, Role role, String phone, LocalDate dob, String address, String bloodGroup, List<String> allBloodGroup, Gender gender, List<String> allGender, String imageUrl, String message) {
         this.name = name;
         this.email = email;
         this.role = role;

@@ -1,12 +1,10 @@
 package com.healthcare.service;
 
 import com.healthcare.dto.appointment.LatestAppointmentResponse;
-import com.healthcare.dto.doctor.AvailableDayResponse;
-import com.healthcare.dto.doctor.DoctorDashboardResponse;
-import com.healthcare.dto.doctor.DoctorListResponse;
-import com.healthcare.dto.doctor.DoctorProfileResponse;
+import com.healthcare.dto.doctor.*;
 import com.healthcare.enums.AppointmentStatus;
 import com.healthcare.enums.ErrorMessage;
+import com.healthcare.enums.SuccessMessage;
 import com.healthcare.exception.ResourceNotFoundException;
 import com.healthcare.model.Appointment;
 import com.healthcare.model.Doctor;
@@ -55,11 +53,11 @@ public class DoctorService {
         return response;
     }
 
-    public DoctorProfileResponse getDoctorById(Long id) {
+    public DoctorDetailsResponse getDoctorById(Long id) {
         Doctor doctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.DOCTOR_NOT_FOUND.getMessage() + id));
 
-        return new DoctorProfileResponse(
+        return new DoctorDetailsResponse(
                 doctor.getId(),
                 doctor.getName(),
                 doctor.getSpecialty(),
@@ -145,8 +143,7 @@ public class DoctorService {
 
         List<LatestAppointmentResponse> response = new ArrayList<>();
 
-        for (Appointment appointment : appointments)
-        {
+        for (Appointment appointment : appointments) {
             Patient patient = appointment.getPatient();
 
             response.add(
@@ -170,4 +167,53 @@ public class DoctorService {
                 response
         );
     }
+
+    public DoctorMyProfileResponse getDoctorProfile(Long loggedInUserId) {
+        Doctor doctor = doctorRepository.findById(loggedInUserId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.DOCTOR_NOT_FOUND.getMessage() + loggedInUserId));
+
+        return new DoctorMyProfileResponse(
+                doctor.getName(),
+                doctor.getUser().getEmail(),
+                doctor.getUser().getRole(),
+                doctor.getPhone(),
+                doctor.getSpecialty(),
+                doctor.getQualifications(),
+                doctor.getExperience(),
+                doctor.getConsultationFee(),
+                doctor.getLanguages(),
+                doctor.getImageUrl(),
+                SuccessMessage.PROFILE_FETCHED_SUCCESS.getMessage()
+        );
+    }
+
+    public DoctorMyProfileResponse updateDoctorProfile(Long loggedInUserId, Doctor request) {
+        Doctor doctor = doctorRepository.findById(loggedInUserId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.DOCTOR_NOT_FOUND.getMessage() + loggedInUserId));
+
+        doctor.setName(request.getName());
+        doctor.setPhone(request.getPhone());
+        doctor.setSpecialty(request.getSpecialty());
+        doctor.setQualifications(request.getQualifications());
+        doctor.setExperience(request.getExperience());
+        doctor.setConsultationFee(request.getConsultationFee());
+        doctor.setLanguages(request.getLanguages());
+
+        doctorRepository.save(doctor);
+
+        return new DoctorMyProfileResponse(
+                doctor.getName(),
+                doctor.getUser().getEmail(),
+                doctor.getUser().getRole(),
+                doctor.getPhone(),
+                doctor.getSpecialty(),
+                doctor.getQualifications(),
+                doctor.getExperience(),
+                doctor.getConsultationFee(),
+                doctor.getLanguages(),
+                doctor.getImageUrl(),
+                SuccessMessage.PROFILE_UPDATED_SUCCESS.getMessage()
+        );
+    }
+
 }

@@ -1,9 +1,7 @@
 package com.healthcare.controller;
 
-import com.healthcare.dto.doctor.AvailableDayResponse;
-import com.healthcare.dto.doctor.DoctorDashboardResponse;
-import com.healthcare.dto.doctor.DoctorListResponse;
-import com.healthcare.dto.doctor.DoctorProfileResponse;
+import com.healthcare.dto.doctor.*;
+import com.healthcare.model.Doctor;
 import com.healthcare.service.DoctorService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,8 +25,9 @@ public class DoctorController {
         return ResponseEntity.ok(doctorService.getAllDoctors());
     }
 
+    // For Patient Only
     @GetMapping("/{id}")
-    public ResponseEntity<DoctorProfileResponse> getDoctorById(@PathVariable Long id) {
+    public ResponseEntity<DoctorDetailsResponse> getDoctorById(@PathVariable Long id) {
 
         return ResponseEntity.ok(doctorService.getDoctorById(id));
     }
@@ -44,4 +43,18 @@ public class DoctorController {
 
         return ResponseEntity.ok(doctorService.getDoctorDashboard(loggedInUserId));
     }
+
+    // For Doctor Only
+    @GetMapping("/my-profile")
+    public ResponseEntity<DoctorMyProfileResponse> getDoctorProfile(@AuthenticationPrincipal Long loggedInUserId) {
+
+        return ResponseEntity.ok(doctorService.getDoctorProfile(loggedInUserId));
+    }
+
+    @PutMapping("/update-profile")
+    public ResponseEntity<DoctorMyProfileResponse> updateDoctorProfile(@AuthenticationPrincipal Long loggedInUserId, @RequestBody Doctor request) {
+
+        return ResponseEntity.ok(doctorService.updateDoctorProfile(loggedInUserId, request));
+    }
+
 }
