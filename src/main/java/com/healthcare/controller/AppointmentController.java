@@ -8,6 +8,7 @@ import com.healthcare.service.AppointmentService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +24,8 @@ public class AppointmentController {
         this.appointmentService = appointmentService;
     }
 
+
+    @PreAuthorize("hasRole('PATIENT')")
     @PostMapping("/book")
     public ResponseEntity<ApiResponse> bookAppointment(@Valid @RequestBody AppointmentRequest request, @AuthenticationPrincipal Long loggedInUserId) {
 
@@ -32,13 +35,16 @@ public class AppointmentController {
                 .body(new ApiResponse(SuccessMessage.APPOINTMENT_BOOKED_SUCCESS.getMessage()));
     }
 
+
+    @PreAuthorize("hasRole('PATIENT')")
     @GetMapping("/my-appointments")
     public ResponseEntity<List<PatientAppointmentResponse>> getMyAppointments(@AuthenticationPrincipal Long loggedInUserId) {
 
         return ResponseEntity.ok(appointmentService.getAppointmentsForPatient(loggedInUserId));
     }
 
-    // For Patient Only
+
+    @PreAuthorize("hasRole('PATIENT')")
     @PutMapping("/{appointmentId}/cancel")
     public ResponseEntity<ApiResponse> cancelAppointment(@AuthenticationPrincipal Long loggedInUserId, @PathVariable Long appointmentId) {
 
@@ -47,7 +53,8 @@ public class AppointmentController {
         return ResponseEntity.ok(new ApiResponse(SuccessMessage.APPOINTMENT_CANCELLED_SUCCESS.getMessage()));
     }
 
-    // Other Than Patient
+
+    @PreAuthorize("hasRole('DOCTOR')")
     @PutMapping("/update-status")
     public ResponseEntity<ApiResponse> updateAppointmentStatus(@RequestParam Long appointmentId, @RequestParam String status) {
 

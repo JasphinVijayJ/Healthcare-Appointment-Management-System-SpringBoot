@@ -4,6 +4,7 @@ import com.healthcare.dto.doctor.*;
 import com.healthcare.model.Doctor;
 import com.healthcare.service.DoctorService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,19 +39,24 @@ public class DoctorController {
         return ResponseEntity.ok(doctorService.getDoctorAvailabilityForNextWeek(doctorId));
     }
 
+
+    @PreAuthorize("hasRole('DOCTOR')")
     @GetMapping("/dashboard")
     public ResponseEntity<DoctorDashboardResponse> getDoctorDashboard(@AuthenticationPrincipal Long loggedInUserId) {
 
         return ResponseEntity.ok(doctorService.getDoctorDashboard(loggedInUserId));
     }
 
-    // For Doctor Only
+
+    @PreAuthorize("hasRole('DOCTOR')")
     @GetMapping("/my-profile")
     public ResponseEntity<DoctorMyProfileResponse> getDoctorProfile(@AuthenticationPrincipal Long loggedInUserId) {
 
         return ResponseEntity.ok(doctorService.getDoctorProfile(loggedInUserId));
     }
 
+
+    @PreAuthorize("hasRole('DOCTOR')")
     @PutMapping("/update-profile")
     public ResponseEntity<DoctorMyProfileResponse> updateDoctorProfile(@AuthenticationPrincipal Long loggedInUserId, @RequestBody Doctor request) {
 

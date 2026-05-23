@@ -123,11 +123,10 @@ public class AuthService {
 
         Long id = null;
 
-        if ("PATIENT".equals(user.getRole().name())) {
+        if (Role.PATIENT == user.getRole()) {
             id = patientRepository.findPatientIdByUserId(user.getId())
                     .orElseThrow(() -> new InvalidCredentialsException(ErrorMessage.PATIENT_NOT_FOUND.getMessage()));
-        }
-        else if ("DOCTOR".equals(user.getRole().name())) {
+        } else if (Role.DOCTOR == user.getRole()) {
             id = doctorRepository.findDoctorIdByUserId(user.getId())
                     .orElseThrow(() -> new InvalidCredentialsException(ErrorMessage.DOCTOR_NOT_FOUND.getMessage()));
         }

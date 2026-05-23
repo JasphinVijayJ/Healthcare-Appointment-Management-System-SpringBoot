@@ -47,8 +47,4 @@ public class AuthController {
         return ResponseEntity.ok(new ApiResponse(SuccessMessage.LOGOUT_SUCCESS.getMessage()));
     }
 
-    @GetMapping("/check")
-    public ResponseEntity<String> checkLogout() {
-        return ResponseEntity.ok("valid");
-    }
 }

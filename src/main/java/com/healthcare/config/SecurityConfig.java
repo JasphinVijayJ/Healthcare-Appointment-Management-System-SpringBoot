@@ -4,6 +4,7 @@ import com.healthcare.security.JwtAuthFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -17,6 +18,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Autowired
@@ -34,41 +36,8 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // Public routes — no token needed
-//                        .requestMatchers(
-//                                "/auth/register",
-//                                "/auth/login",
-//                                "/auth/logout",
-//                                "/utility/contact-form"
-//                        ).permitAll()
-
-                        // Public doctor routes
-//                        .requestMatchers(
-//                                "/doctors/list",
-//                                "/doctors/{id}",
-//                                "/doctors/{doctorId}/availability"
-//                        ).permitAll()
-
-
-                        // Protected patient routes
-//                        .requestMatchers(
-//                                "/appointments/**",
-//                                "/patients/**"
-//                        ).hasRole("PATIENT")
-
-                        // Protected doctor routes
-//                        .requestMatchers("/doctors/dashboard/{id}")
-//                        .hasRole("DOCTOR")
-
-
-//                        .requestMatchers("/utility/upload-profile-image")
-//                        .hasAnyRole("PATIENT", "DOCTOR")
-
-                        // Everything else needs any valid token
-//                        .anyRequest().authenticated()
-
-                                // TEMPORARY → allow all APIs
-                                .anyRequest().permitAll()
+                        // allow everything here (you control security via @PreAuthorize)
+                        .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
