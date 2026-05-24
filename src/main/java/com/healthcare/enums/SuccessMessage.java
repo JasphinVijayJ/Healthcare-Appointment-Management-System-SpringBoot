@@ -15,6 +15,9 @@ public enum SuccessMessage {
     PROFILE_FETCHED_SUCCESS("Profile fetched successfully !!"),
     PROFILE_UPDATED_SUCCESS("Profile updated successfully !!"),
 
+    SCHEDULE_FETCHED_SUCCESS("Schedule fetched successfully !!"),
+    SCHEDULE_UPDATED_SUCCESS("Schedule updated successfully !!"),
+
     CONTACT_MESSAGE_SENT("Message sent successfully !!");
 
     private final String message;

@@ -1,6 +1,7 @@
 package com.healthcare.controller;
 
 import com.healthcare.dto.appointment.AppointmentRequest;
+import com.healthcare.dto.appointment.LatestAppointmentResponse;
 import com.healthcare.dto.appointment.PatientAppointmentResponse;
 import com.healthcare.dto.common.ApiResponse;
 import com.healthcare.enums.SuccessMessage;
@@ -27,12 +28,12 @@ public class AppointmentController {
 
     @PreAuthorize("hasRole('PATIENT')")
     @PostMapping("/book")
-    public ResponseEntity<ApiResponse> bookAppointment(@Valid @RequestBody AppointmentRequest request, @AuthenticationPrincipal Long loggedInUserId) {
+    public ResponseEntity<ApiResponse<Void>> bookAppointment(@Valid @RequestBody AppointmentRequest request, @AuthenticationPrincipal Long loggedInUserId) {
 
         appointmentService.bookAppointment(loggedInUserId, request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse(SuccessMessage.APPOINTMENT_BOOKED_SUCCESS.getMessage()));
+                .body(new ApiResponse<>(SuccessMessage.APPOINTMENT_BOOKED_SUCCESS.getMessage()));
     }
 
 
@@ -46,18 +47,26 @@ public class AppointmentController {
 
     @PreAuthorize("hasRole('PATIENT')")
     @PutMapping("/{appointmentId}/cancel")
-    public ResponseEntity<ApiResponse> cancelAppointment(@AuthenticationPrincipal Long loggedInUserId, @PathVariable Long appointmentId) {
+    public ResponseEntity<ApiResponse<Void>> cancelAppointment(@AuthenticationPrincipal Long loggedInUserId, @PathVariable Long appointmentId) {
 
         appointmentService.cancelAppointment(appointmentId, loggedInUserId);
 
-        return ResponseEntity.ok(new ApiResponse(SuccessMessage.APPOINTMENT_CANCELLED_SUCCESS.getMessage()));
+        return ResponseEntity.ok(new ApiResponse<>(SuccessMessage.APPOINTMENT_CANCELLED_SUCCESS.getMessage()));
     }
 
 
     @PreAuthorize("hasRole('DOCTOR')")
     @PutMapping("/update-status")
-    public ResponseEntity<ApiResponse> updateAppointmentStatus(@RequestParam Long appointmentId, @RequestParam String status) {
+    public ResponseEntity<ApiResponse<String>> updateAppointmentStatus(@RequestParam Long appointmentId, @RequestParam String status) {
 
         return ResponseEntity.ok(appointmentService.updateAppointmentStatus(appointmentId, status));
+    }
+
+
+    @PreAuthorize("hasRole('DOCTOR')")
+    @GetMapping("/doctor-appointments")
+    public ResponseEntity<List<LatestAppointmentResponse>> getDoctorAppointments(@AuthenticationPrincipal Long loggedInUserId) {
+
+        return ResponseEntity.ok(appointmentService.getDoctorAppointments(loggedInUserId));
     }
 }

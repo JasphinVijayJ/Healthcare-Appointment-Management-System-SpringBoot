@@ -23,18 +23,18 @@ public class UtilityController {
     }
 
     @PostMapping("/contact-form")
-    public ResponseEntity<ApiResponse> sendMessage(@Valid @RequestBody ContactRequest request) {
+    public ResponseEntity<ApiResponse<Void>> sendMessage(@Valid @RequestBody ContactRequest request) {
 
         utilityService.sendContactEmail(request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse(SuccessMessage.CONTACT_MESSAGE_SENT.getMessage()));
+                .body(new ApiResponse<>(SuccessMessage.CONTACT_MESSAGE_SENT.getMessage()));
     }
 
 
     @PreAuthorize("hasAnyRole('PATIENT', 'DOCTOR')")
     @PostMapping("/upload-profile-image")
-    public ResponseEntity<ApiResponse> uploadProfileImage(@AuthenticationPrincipal Long loggedInUserId,
+    public ResponseEntity<ApiResponse<String>> uploadProfileImage(@AuthenticationPrincipal Long loggedInUserId,
                                                           @RequestParam("image") MultipartFile image,
                                                           @RequestParam("role") String role) {
 

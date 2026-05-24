@@ -74,59 +74,71 @@ public class DoctorService {
         if (!doctorRepository.existsById(doctorId))
             throw new ResourceNotFoundException(ErrorMessage.DOCTOR_NOT_FOUND.getMessage() + doctorId);
 
+
+        List<DoctorAvailability> schedules = doctorAvailabilityRepository.findByDoctor_IdOrderByIdAsc(doctorId);
+
+        Map<DayOfWeek, DoctorAvailability> scheduleMap = new HashMap<>();
+
+        for (DoctorAvailability s : schedules) {
+            scheduleMap.put(s.getDayOfWeek(), s);
+        }
+
+
         List<AvailableDayResponse> response = new ArrayList<>();
+
         LocalDate date = LocalDate.now();
         int maxDaysChecked = 0;
 
-        final int MAX_SLOTS_PER_DAY = 6;
+        final int MAX_VISIBLE_SLOTS = 6;
         final int AVAILABLE_DAYS_LIMIT = 6;
         final int MAX_FUTURE_SEARCH_DAYS = 30;
 
         while (response.size() < AVAILABLE_DAYS_LIMIT && maxDaysChecked < MAX_FUTURE_SEARCH_DAYS) {
-            // Skip Sunday (doctor leave day)
-            if (date.getDayOfWeek() != DayOfWeek.SUNDAY) {
-                DayOfWeek dayOfWeek = date.getDayOfWeek();
 
-                Optional<DoctorAvailability> optionalDoctorAvailability = doctorAvailabilityRepository.findByDoctor_IdAndDayOfWeekAndIsActiveTrue(doctorId, dayOfWeek);
+            DayOfWeek dayOfWeek = date.getDayOfWeek();
 
-                if (optionalDoctorAvailability.isPresent()) {
-                    DoctorAvailability doctorAvailability = optionalDoctorAvailability.get();
+            DoctorAvailability availability = scheduleMap.get(dayOfWeek);
 
-                    // Generate all slots
-                    List<LocalTime> slots = CommonUtil.generateTimeSlots(
-                            doctorAvailability.getStartTime(),
-                            doctorAvailability.getEndTime(),
-                            doctorAvailability.getSlotDuration(),
-                            MAX_SLOTS_PER_DAY
-                    );
+            if (availability != null && Boolean.TRUE.equals(availability.getIsActive())) {
 
-                    // Fetch BLOCKED appointments (BOOKED + COMPLETED)
-                    List<AppointmentStatus> blockedStatuses =
-                            List.of(AppointmentStatus.BOOKED, AppointmentStatus.COMPLETED);
+                // Generate all slots
+                List<LocalTime> slots = CommonUtil.generateTimeSlots(
+                        availability.getStartTime(),
+                        availability.getEndTime(),
+                        availability.getSlotDuration()
+                );
 
-                    // Get booked appointments
-                    List<Appointment> appointments = appointmentRepository.findByDoctor_IdAndAppointmentDateAndStatusIn(
-                            doctorId, date, blockedStatuses);
+                // Fetch BLOCKED appointments (BOOKED + COMPLETED)
+                List<AppointmentStatus> blockedStatuses =
+                        List.of(AppointmentStatus.BOOKED, AppointmentStatus.COMPLETED);
 
-                    // Extract booked times
-                    Set<LocalTime> bookedTimeSlots = new HashSet<>();
-                    for (Appointment a : appointments)
-                        bookedTimeSlots.add(a.getAppointmentTime());
+                // Get booked appointments
+                List<Appointment> appointments = appointmentRepository.findByDoctor_IdAndAppointmentDateAndStatusIn(
+                        doctorId, date, blockedStatuses);
 
-                    // Remove booked slots
-                    slots.removeAll(bookedTimeSlots);
+                // Extract booked times
+                Set<LocalTime> bookedTimeSlots = new HashSet<>();
+                for (Appointment a : appointments)
+                    bookedTimeSlots.add(a.getAppointmentTime());
 
-                    // Remove past slots for today
-                    if (date.equals(LocalDate.now())) {
-                        LocalTime now = LocalTime.now();
-                        slots.removeIf(slot -> !slot.isAfter(now));
-                    }
+                // Remove booked slots
+                slots.removeAll(bookedTimeSlots);
 
-                    if (!slots.isEmpty()) {
-                        response.add(new AvailableDayResponse(doctorId, date, slots, doctorAvailability.getSlotDuration()));
-                    }
+                // Remove past slots for today
+                if (date.equals(LocalDate.now())) {
+                    LocalTime now = LocalTime.now();
+                    slots.removeIf(slot -> !slot.isAfter(now));
+                }
+
+                slots = slots.stream()
+                        .limit(MAX_VISIBLE_SLOTS)
+                        .toList();
+
+                if (!slots.isEmpty()) {
+                    response.add(new AvailableDayResponse(doctorId, date, slots, availability.getSlotDuration()));
                 }
             }
+
             // Move to next day
             date = date.plusDays(1);
             maxDaysChecked++;
@@ -157,7 +169,6 @@ public class DoctorService {
                     )
             );
         }
-
 
         return new DoctorDashboardResponse(
                 doctor.getName(),
@@ -214,6 +225,60 @@ public class DoctorService {
                 doctor.getImageUrl(),
                 SuccessMessage.PROFILE_UPDATED_SUCCESS.getMessage()
         );
+    }
+
+    public List<DoctorScheduleResponse> getDoctorSchedule(Long doctorId) {
+        // Check if doctor exists
+        if (!doctorRepository.existsById(doctorId))
+            throw new ResourceNotFoundException(ErrorMessage.DOCTOR_NOT_FOUND.getMessage() + doctorId);
+
+        return doctorAvailabilityRepository.findByDoctor_IdOrderByIdAsc(doctorId)
+                .stream()
+                .map(avail -> new DoctorScheduleResponse(
+                        avail.getId(),
+                        avail.getDayOfWeek(),
+                        avail.getStartTime(),
+                        avail.getEndTime(),
+                        avail.getSlotDuration(),
+                        avail.getIsActive()
+                ))
+                .toList();
+    }
+
+    public List<DoctorScheduleResponse> updateDoctorSchedule(Long doctorId, List<DoctorAvailability> requestList) {
+        // Check if doctor exists
+        if (!doctorRepository.existsById(doctorId))
+            throw new ResourceNotFoundException(ErrorMessage.DOCTOR_NOT_FOUND.getMessage() + doctorId);
+
+
+        List<DoctorAvailability> updatedList = new ArrayList<>();
+
+        for (DoctorAvailability req : requestList) {
+            DoctorAvailability availability = doctorAvailabilityRepository.findById(req.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.SCHEDULE_NOT_FOUND.getMessage() + req.getId()));
+
+            availability.setDayOfWeek(req.getDayOfWeek());
+            availability.setStartTime(req.getStartTime());
+            availability.setEndTime(req.getEndTime());
+            availability.setSlotDuration(req.getSlotDuration());
+            availability.setIsActive(req.getIsActive());
+
+            updatedList.add(availability);
+        }
+
+        doctorAvailabilityRepository.saveAll(updatedList);
+
+
+        return updatedList.stream()
+                .map(avail -> new DoctorScheduleResponse(
+                        avail.getId(),
+                        avail.getDayOfWeek(),
+                        avail.getStartTime(),
+                        avail.getEndTime(),
+                        avail.getSlotDuration(),
+                        avail.getIsActive()
+                ))
+                .toList();
     }
 
 }

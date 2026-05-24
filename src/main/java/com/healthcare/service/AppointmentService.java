@@ -1,6 +1,7 @@
 package com.healthcare.service;
 
 import com.healthcare.dto.appointment.AppointmentRequest;
+import com.healthcare.dto.appointment.LatestAppointmentResponse;
 import com.healthcare.dto.appointment.PatientAppointmentResponse;
 import com.healthcare.dto.common.ApiResponse;
 import com.healthcare.enums.AppointmentStatus;
@@ -25,12 +26,12 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class AppointmentService {
 
-    private static final int MAX_SLOTS_PER_DAY = 6;
     private static final int MAX_DAILY_PATIENT_APPOINTMENTS = 2;
 
     private final AppointmentRepository appointmentRepository;
@@ -75,8 +76,7 @@ public class AppointmentService {
         List<LocalTime> validSlots = CommonUtil.generateTimeSlots(
                 doctorAvailability.getStartTime(),
                 doctorAvailability.getEndTime(),
-                doctorAvailability.getSlotDuration(),
-                MAX_SLOTS_PER_DAY
+                doctorAvailability.getSlotDuration()
         );
 
         // Check if requested time matches a valid slot
@@ -156,7 +156,7 @@ public class AppointmentService {
     }
 
     @Transactional
-    public ApiResponse updateAppointmentStatus(Long appointmentId, String req_Status) {
+    public ApiResponse<String> updateAppointmentStatus(Long appointmentId, String req_Status) {
 
         AppointmentStatus status;
 
@@ -202,7 +202,36 @@ public class AppointmentService {
             utilityService.sendAppointmentRejected(appointment);
         }
 
-        return new ApiResponse(appointment.getStatus().name(), SuccessMessage.APPOINTMENT_STATUS_UPDATED_SUCCESS.getMessage());
+        return new ApiResponse<>(appointment.getStatus().name(), SuccessMessage.APPOINTMENT_STATUS_UPDATED_SUCCESS.getMessage());
+    }
+
+
+    public List<LatestAppointmentResponse> getDoctorAppointments(Long doctorId) {
+
+        // Check if doctor exists
+        if (!doctorRepository.existsById(doctorId))
+            throw new ResourceNotFoundException(ErrorMessage.DOCTOR_NOT_FOUND.getMessage() + doctorId);
+
+        List<Appointment> appointments = appointmentRepository.findAppointmentsForDoctorAppointments(doctorId);
+
+        List<LatestAppointmentResponse> response = new ArrayList<>();
+
+        for (Appointment appointment : appointments) {
+            Patient patient = appointment.getPatient();
+
+            response.add(
+                    new LatestAppointmentResponse(
+                            appointment.getId(),
+                            patient.getName(),
+                            CommonUtil.calculateAge(patient.getDob()),
+                            appointment.getAppointmentDate(),
+                            appointment.getAppointmentTime(),
+                            appointment.getStatus()
+                    )
+            );
+        }
+
+        return response;
     }
 
 }

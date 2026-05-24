@@ -8,8 +8,10 @@ import com.healthcare.exception.EmailAlreadyExistsException;
 import com.healthcare.exception.InvalidCredentialsException;
 import com.healthcare.exception.PasswordMismatchException;
 import com.healthcare.model.Doctor;
+import com.healthcare.model.DoctorAvailability;
 import com.healthcare.model.Patient;
 import com.healthcare.model.User;
+import com.healthcare.repository.DoctorAvailabilityRepository;
 import com.healthcare.repository.DoctorRepository;
 import com.healthcare.repository.PatientRepository;
 import com.healthcare.repository.UserRepository;
@@ -20,7 +22,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class AuthService {
@@ -28,6 +34,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
+    private final DoctorAvailabilityRepository doctorAvailabilityRepository;
     private final JwtUtil jwtUtil;
 
     @Value("${cloudinary.default-doctor-image}")
@@ -40,10 +47,12 @@ public class AuthService {
             UserRepository userRepository,
             PatientRepository patientRepository,
             DoctorRepository doctorRepository,
+            DoctorAvailabilityRepository doctorAvailabilityRepository,
             JwtUtil jwtUtil) {
         this.userRepository = userRepository;
         this.patientRepository = patientRepository;
         this.doctorRepository = doctorRepository;
+        this.doctorAvailabilityRepository = doctorAvailabilityRepository;
         this.jwtUtil = jwtUtil;
     }
 
@@ -95,6 +104,27 @@ public class AuthService {
 
         doctor.setUser(user);
         doctorRepository.save(doctor);
+
+        List<DoctorAvailability> schedules = new ArrayList<>();
+
+        for (DayOfWeek day : List.of(
+                DayOfWeek.MONDAY, DayOfWeek.TUESDAY,
+                DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY,
+                DayOfWeek.FRIDAY, DayOfWeek.SATURDAY
+        )) {
+            DoctorAvailability schedule = new DoctorAvailability();
+
+            schedule.setDayOfWeek(day);
+            schedule.setStartTime(LocalTime.of(10, 0, 0));
+            schedule.setEndTime(LocalTime.of(17, 0, 0));
+            schedule.setDoctor(doctor);
+            schedule.setIsActive(false);
+            schedule.setSlotDuration(30);
+
+            schedules.add(schedule);
+        }
+
+        doctorAvailabilityRepository.saveAll(schedules);
     }
 
     private void validateRegisterRequest(RegisterRequest request) {

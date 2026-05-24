@@ -23,17 +23,17 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse> registerPatient(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<ApiResponse<Void>> registerPatient(@Valid @RequestBody RegisterRequest request) {
         authService.registerPatient(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse(SuccessMessage.PATIENT_REGISTER_SUCCESS.getMessage()));
+                .body(new ApiResponse<>(SuccessMessage.PATIENT_REGISTER_SUCCESS.getMessage()));
     }
 
     @PostMapping("/admin/register-doctor")
-    public ResponseEntity<ApiResponse> registerDoctor(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<ApiResponse<Void>> registerDoctor(@Valid @RequestBody RegisterRequest request) {
         authService.registerDoctor(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse(SuccessMessage.DOCTOR_REGISTER_SUCCESS.getMessage()));
+                .body(new ApiResponse<>(SuccessMessage.DOCTOR_REGISTER_SUCCESS.getMessage()));
     }
 
     @PostMapping("/login")
@@ -42,9 +42,9 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse> logout(HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<Void>> logout(HttpServletResponse response) {
         authService.logout(response);
-        return ResponseEntity.ok(new ApiResponse(SuccessMessage.LOGOUT_SUCCESS.getMessage()));
+        return ResponseEntity.ok(new ApiResponse<>(SuccessMessage.LOGOUT_SUCCESS.getMessage()));
     }
 
 }

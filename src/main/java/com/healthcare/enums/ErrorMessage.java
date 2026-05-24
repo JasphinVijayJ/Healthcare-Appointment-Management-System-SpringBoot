@@ -8,6 +8,7 @@ public enum ErrorMessage {
 
     DOCTOR_NOT_FOUND("No doctor found with ID: "),
     PATIENT_NOT_FOUND("No patient found with ID: "),
+    SCHEDULE_NOT_FOUND("Schedule not found: "),
 
     DOCTOR_ALREADY_BOOKED("The doctor is already booked for this time slot."),
     PATIENT_ALREADY_BOOKED("You already have an appointment at this time."),

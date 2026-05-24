@@ -80,4 +80,18 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             """, nativeQuery = true)
     List<Appointment> findTop6RecentAppointmentsForDoctorDashboard(@Param("doctorId") Long doctorId);
 
+
+    @Query(value = """
+            SELECT *
+            FROM appointments a
+            WHERE a.doctor_id = :doctorId
+            ORDER BY
+            CASE
+                 WHEN a.status = 'BOOKED' THEN 0
+                 ELSE 1
+            END,
+            a.created_at DESC
+            """, nativeQuery = true)
+    List<Appointment> findAppointmentsForDoctorAppointments(@Param("doctorId") Long doctorId);
+
 }

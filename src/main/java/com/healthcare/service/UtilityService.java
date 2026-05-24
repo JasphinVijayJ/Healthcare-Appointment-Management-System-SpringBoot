@@ -158,7 +158,7 @@ public class UtilityService {
 
     /* ------------------------- Profile Image Upload Service ----------------------------- */
 
-    public ApiResponse uploadProfileImage(MultipartFile image, Long loggedInUserId, String role) {
+    public ApiResponse<String> uploadProfileImage(MultipartFile image, Long loggedInUserId, String role) {
         // Validate file
         if (image == null || image.isEmpty()) {
             throw new BadRequestException(ErrorMessage.IMAGE_REQUIRED.getMessage());
@@ -220,7 +220,7 @@ public class UtilityService {
                 doctorRepository.save(doctor);
             }
 
-            return new ApiResponse(imageUrl, SuccessMessage.PROFILE_IMAGE_UPLOADED_SUCCESS.getMessage());
+            return new ApiResponse<>(imageUrl, SuccessMessage.PROFILE_IMAGE_UPLOADED_SUCCESS.getMessage());
 
         } catch (IOException e) {
             throw new ExternalServiceException(ErrorMessage.IMAGE_UPLOAD_FAILED.getMessage(), e);

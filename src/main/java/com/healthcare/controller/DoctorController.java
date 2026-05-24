@@ -1,7 +1,11 @@
 package com.healthcare.controller;
 
+import com.healthcare.dto.appointment.LatestAppointmentResponse;
+import com.healthcare.dto.common.ApiResponse;
 import com.healthcare.dto.doctor.*;
+import com.healthcare.enums.SuccessMessage;
 import com.healthcare.model.Doctor;
+import com.healthcare.model.DoctorAvailability;
 import com.healthcare.service.DoctorService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -61,6 +65,30 @@ public class DoctorController {
     public ResponseEntity<DoctorMyProfileResponse> updateDoctorProfile(@AuthenticationPrincipal Long loggedInUserId, @RequestBody Doctor request) {
 
         return ResponseEntity.ok(doctorService.updateDoctorProfile(loggedInUserId, request));
+    }
+
+
+    @PreAuthorize("hasRole('DOCTOR')")
+    @GetMapping("/my-schedule")
+    public ResponseEntity<ApiResponse<List<DoctorScheduleResponse>>> getMySchedule(@AuthenticationPrincipal Long loggedInUserId) {
+
+        return ResponseEntity.ok(new ApiResponse<>(
+                doctorService.getDoctorSchedule(loggedInUserId),
+                SuccessMessage.SCHEDULE_FETCHED_SUCCESS.getMessage()
+        ));
+    }
+
+
+    @PreAuthorize("hasRole('DOCTOR')")
+    @PutMapping("/update-my-schedule")
+    public ResponseEntity<ApiResponse<List<DoctorScheduleResponse>>> updateDoctorSchedule(
+            @AuthenticationPrincipal Long loggedInUserId, @RequestBody List<DoctorAvailability> requestList) {
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        doctorService.updateDoctorSchedule(loggedInUserId, requestList),
+                        SuccessMessage.SCHEDULE_UPDATED_SUCCESS.getMessage()
+                ));
     }
 
 }

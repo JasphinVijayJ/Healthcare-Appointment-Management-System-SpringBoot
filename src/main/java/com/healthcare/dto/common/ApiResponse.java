@@ -1,15 +1,15 @@
 package com.healthcare.dto.common;
 
-public class ApiResponse {
+public class ApiResponse<T> {
 
     private String message;
-    private String data;
+    private T data;
 
     public ApiResponse(String message) {
         this.message = message;
     }
 
-    public ApiResponse(String data, String message) {
+    public ApiResponse(T data, String message) {
         this.message = message;
         this.data = data;
     }
@@ -23,11 +23,11 @@ public class ApiResponse {
         this.message = message;
     }
 
-    public String getData() {
+    public T getData() {
         return data;
     }
 
-    public void setData(String data) {
+    public void setData(T data) {
         this.data = data;
     }
 }

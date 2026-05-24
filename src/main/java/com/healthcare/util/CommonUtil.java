@@ -22,15 +22,14 @@ public final class CommonUtil {
      * @param start           - starting time
      * @param end             - ending time
      * @param durationMinutes - duration of each slot in minutes
-     * @param maxSlotsPerDay  - maximum number of slots to generate per day
      * @return list of slots as strings in HH:mm format
      */
 
-    public static List<LocalTime> generateTimeSlots(LocalTime start, LocalTime end, int durationMinutes, int maxSlotsPerDay) {
+    public static List<LocalTime> generateTimeSlots(LocalTime start, LocalTime end, int durationMinutes) {
         List<LocalTime> slots = new ArrayList<>();
         LocalTime current = start;
 
-        while (!current.plusMinutes(durationMinutes).isAfter(end) && slots.size() < maxSlotsPerDay) {
+        while (!current.plusMinutes(durationMinutes).isAfter(end)) {
             slots.add(current);
             current = current.plusMinutes(durationMinutes);
         }
