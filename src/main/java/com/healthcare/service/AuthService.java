@@ -107,7 +107,7 @@ public class AuthService {
 
         List<DoctorAvailability> schedules = new ArrayList<>();
 
-        for (DayOfWeek day : List.of(
+        for (DayOfWeek day : List.of(DayOfWeek.SUNDAY,
                 DayOfWeek.MONDAY, DayOfWeek.TUESDAY,
                 DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY,
                 DayOfWeek.FRIDAY, DayOfWeek.SATURDAY

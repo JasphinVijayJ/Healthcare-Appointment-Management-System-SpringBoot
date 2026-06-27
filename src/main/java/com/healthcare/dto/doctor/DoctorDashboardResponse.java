@@ -7,16 +7,20 @@ import java.util.List;
 public class DoctorDashboardResponse {
 
     private final String doctorName;
-    private final double totalEarnings;
-    private final long totalAppointments;
-    private final long totalPatients;
+    private final String earnings;
+    private final String appointments;
+    private final String patients;
+    private final String completedAppointments;
+    private final String appointmentStatus;
     private final List<LatestAppointmentResponse> latestAppointments;
 
-    public DoctorDashboardResponse(String doctorName, double totalEarnings, long totalAppointments, long totalPatients, List<LatestAppointmentResponse> latestAppointments) {
+    public DoctorDashboardResponse(String doctorName, String earnings, String appointments, String patients, String completedAppointments, String appointmentStatus, List<LatestAppointmentResponse> latestAppointments) {
         this.doctorName = doctorName;
-        this.totalEarnings = totalEarnings;
-        this.totalAppointments = totalAppointments;
-        this.totalPatients = totalPatients;
+        this.earnings = earnings;
+        this.appointments = appointments;
+        this.patients = patients;
+        this.completedAppointments = completedAppointments;
+        this.appointmentStatus = appointmentStatus;
         this.latestAppointments = latestAppointments;
     }
 
@@ -25,16 +29,24 @@ public class DoctorDashboardResponse {
         return doctorName;
     }
 
-    public double getTotalEarnings() {
-        return totalEarnings;
+    public String getEarnings() {
+        return earnings;
     }
 
-    public long getTotalAppointments() {
-        return totalAppointments;
+    public String getAppointments() {
+        return appointments;
     }
 
-    public long getTotalPatients() {
-        return totalPatients;
+    public String getPatients() {
+        return patients;
+    }
+
+    public String getCompletedAppointments() {
+        return completedAppointments;
+    }
+
+    public String getAppointmentStatus() {
+        return appointmentStatus;
     }
 
     public List<LatestAppointmentResponse> getLatestAppointments() {

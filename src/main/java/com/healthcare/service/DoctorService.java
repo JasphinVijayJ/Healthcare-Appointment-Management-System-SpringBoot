@@ -151,11 +151,11 @@ public class DoctorService {
         Doctor doctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorMessage.DOCTOR_NOT_FOUND.getMessage() + id));
 
-        List<Appointment> appointments = appointmentRepository.findTop6RecentAppointmentsForDoctorDashboard(id);
+        List<Appointment> top6Appointments = appointmentRepository.findTop6RecentAppointmentsForDoctorDashboard(id);
 
         List<LatestAppointmentResponse> response = new ArrayList<>();
 
-        for (Appointment appointment : appointments) {
+        for (Appointment appointment : top6Appointments) {
             Patient patient = appointment.getPatient();
 
             response.add(
@@ -170,11 +170,26 @@ public class DoctorService {
             );
         }
 
+
+        Object[] status = appointmentRepository.getDoctorDashboardStatsCount(id).getFirst();
+
+        String earnings = String.format("%.0f/%.0f",
+                ((Number) status[0]).doubleValue(),
+                ((Number) status[1]).doubleValue());
+
+        String appointments = status[2] + "/" + status[3];
+        String patients = status[4] + "/" + status[5];
+        String completedAppointments = status[6].toString();
+        String appointmentStatus = status[7] + "/" + status[8];
+
+
         return new DoctorDashboardResponse(
                 doctor.getName(),
-                appointmentRepository.getTotalEarningsByDoctor(id),
-                appointmentRepository.countByDoctor_Id(id),
-                appointmentRepository.countDistinctPatientsByDoctor(id),
+                earnings,
+                appointments,
+                patients,
+                completedAppointments,
+                appointmentStatus,
                 response
         );
     }

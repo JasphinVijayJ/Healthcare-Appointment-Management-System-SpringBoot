@@ -25,6 +25,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     int countByPatientAndAppointmentDateAndStatusIn(Patient patient, LocalDate date, List<AppointmentStatus> status);
 
+
     @Query("""
             SELECT new com.healthcare.dto.appointment.PatientAppointmentResponse(
             a.id,
@@ -46,26 +47,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<PatientAppointmentResponse> findAppointmentsForPatient(@Param("patientId") Long patientId);
 
 
-    @Query("""
-            SELECT COALESCE(SUM(a.doctorFee), 0)
-            FROM Appointment a
-            WHERE a.doctor.id = :doctorId
-            AND a.status = 'COMPLETED'
-            """)
-    double getTotalEarningsByDoctor(@Param("doctorId") Long doctorId);
-
-
-    long countByDoctor_Id(Long doctorId);
-
-
-    @Query("""
-            SELECT COUNT(DISTINCT a.patient.id)
-            FROM Appointment a
-            WHERE a.doctor.id = :doctorId
-            """)
-    long countDistinctPatientsByDoctor(@Param("doctorId") Long doctorId);
-
-
     @Query(value = """
             SELECT *
             FROM appointments a
@@ -79,6 +60,27 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             LIMIT 6
             """, nativeQuery = true)
     List<Appointment> findTop6RecentAppointmentsForDoctorDashboard(@Param("doctorId") Long doctorId);
+
+
+    @Query(value = """
+            SELECT
+                COALESCE(SUM(IF(DATE(a.appointment_date) = CURDATE() AND a.status = 'COMPLETED', a.doctor_fee, 0)), 0) AS todayEarnings,
+                COALESCE(SUM(IF(a.status = 'COMPLETED', a.doctor_fee, 0)), 0) AS totalEarnings,
+            
+                COALESCE(SUM(IF(DATE(a.appointment_date) = CURDATE(), 1, 0)), 0) AS todayAppointments,
+                COUNT(*) AS totalAppointments,
+            
+                COUNT(DISTINCT IF(DATE(a.appointment_date) = CURDATE(), a.patient_id, NULL)) AS todayPatients,
+                COUNT(DISTINCT a.patient_id) AS totalPatients,
+            
+                COALESCE(SUM(a.status = 'COMPLETED'), 0) AS completedAppointments,
+                COALESCE(SUM(a.status = 'BOOKED'), 0) AS pendingAppointments,
+                COALESCE(SUM(a.status = 'REJECTED'), 0) AS rejectedAppointments
+            
+            FROM appointments a
+            WHERE a.doctor_id = :doctorId
+            """, nativeQuery = true)
+    List<Object[]> getDoctorDashboardStatsCount(@Param("doctorId") Long doctorId);
 
 
     @Query(value = """
